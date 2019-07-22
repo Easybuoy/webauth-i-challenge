@@ -49,7 +49,7 @@ router.post("/login", async (req, res) => {
  */
 router.post("/register", async (req, res) => {
   try {
-    const { username, password } = req.body;
+    let { username, password } = req.body;
     if (!username && !password) {
       return res.status(400).json({
         status: "error",
@@ -64,6 +64,7 @@ router.post("/register", async (req, res) => {
         .json({ status: "error", message: "Username already taken" });
     }
 
+    password = String(password)
     let hashedPassword = bcrypt.hashSync(password, 12);
 
     const newUser = await User.insert({ username, password: hashedPassword });
