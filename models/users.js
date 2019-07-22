@@ -30,7 +30,9 @@ function remove(id) {
     .del();
 }
 
-
+function getByUsername(username) {
+  return db("users").where("username", username);
+}
 
 module.exports = {
   get,
@@ -38,5 +40,5 @@ module.exports = {
   insert,
   update,
   remove,
-
+  getByUsername
 };
