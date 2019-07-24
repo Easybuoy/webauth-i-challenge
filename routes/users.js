@@ -4,7 +4,7 @@ const bcrypt = require("bcrypt");
 const router = express.Router();
 
 const User = require("../models/users");
-
+const restricted = require("../middlewares/index");
 /**
  * METHOD: POST
  * ROUTE: /api/auth/login
@@ -12,8 +12,8 @@ const User = require("../models/users");
  */
 router.post("/login", async (req, res) => {
   try {
-    const { username, password } = req.body;
-
+    let { username, password } = req.body;
+    password = String(password)
     const existingUser = await User.getByUsername(username);
     if (existingUser.length === 0) {
       return res
@@ -27,6 +27,7 @@ router.post("/login", async (req, res) => {
     );
 
     if (isValidPassword === true) {
+        req.session.user = existingUser[0];
       return res.json({
         status: "success",
         message: `Welcome ${existingUser[0].username}, login successful`
@@ -35,7 +36,7 @@ router.post("/login", async (req, res) => {
     return res
       .status(401)
       .json({ status: "error", message: "Invalid password" });
-  } catch (error) {
+  } catch (error) { console.log(error)
     return res
       .status(500)
       .json({ status: "error", message: "Error logging in" });
@@ -64,7 +65,7 @@ router.post("/register", async (req, res) => {
         .json({ status: "error", message: "Username already taken" });
     }
 
-    password = String(password)
+    password = String(password);
     let hashedPassword = bcrypt.hashSync(password, 12);
 
     const newUser = await User.insert({ username, password: hashedPassword });
@@ -85,6 +86,12 @@ router.post("/register", async (req, res) => {
       message: "Error registering user"
     });
   }
+});
+
+router.post("/users", restricted, async (req, res) => {
+  const users = await User.get();
+
+  return res.status(200).json({ status: "success", data: users });
 });
 
 module.exports = router;
